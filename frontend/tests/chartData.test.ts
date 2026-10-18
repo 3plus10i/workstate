@@ -58,3 +58,12 @@ test('all multi day charts start with the calendar range length', () => {
     assert.match(chartDescription(report,kind).info,/^统计区间共 2 天，总计 2h0m/)
   }
 })
+
+test('heatmap explanations use five-minute slots for up to three days and hours thereafter', () => {
+  const report = fixture([app('editor',7)])
+  for (let count = 1; count <= 4; count++) {
+    report.days = Array.from({length:count}, (_,i) => ({...report.days[0], date:`2026-10-${13+i}`}))
+    const text = chartDescription(report, 'heatmap')
+    assert.match(text.explanation, count <= 3 ? /^每格表示5分钟/ : /^每格表示1小时/)
+  }
+})

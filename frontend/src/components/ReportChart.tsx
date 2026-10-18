@@ -9,6 +9,8 @@ import { MultiDayPieChart } from './MultiDayPieChart'
 import { AppBarChart } from './AppBarChart'
 import { MultiDayBarChart } from './MultiDayBarChart'
 
+const WEEK_DAYS = ['日', '一', '二', '三', '四', '五', '六']
+
 export const ReportChart = memo(function ReportChart({ report, chart, page }: { report: Report; chart: 'heatmap' | 'pie' | 'bar'; page: number }) {
   const data = useMemo(() => chartData(report), [report])
   const start = (page - 1) * 31
@@ -16,11 +18,16 @@ export const ReportChart = memo(function ReportChart({ report, chart, page }: { 
   const slots = useMemo(() => data.hourlyActivity.slice(start, start + 31), [data, start])
   const hourly = useMemo(() => data.hourlyAppData.slice(start, start + 31), [data, start])
   const coverage = useMemo(() => report.days.slice(start, start + 31).map(day => day.coverage), [report, start])
-  const selectedDate = useMemo(() => dayjs(report.start).toDate(), [report.start])
+  const dailyHeatmaps = useMemo(() => report.days.length <= 3
+    ? report.days.map(day => ({ day, selectedDate: dayjs(day.date).toDate() }))
+    : [], [report.days])
   const single = report.days.length === 1
   return <div className={`chart-stage ${chart === 'heatmap' ? 'heatmap-stage' : ''}`}>
-    {chart === 'heatmap' && (single
-      ? <HeatmapChart values={report.days[0].slots} coverage={report.days[0].coverage} dayStartHour={report.dayStartHour} selectedDate={selectedDate}/>
+    {chart === 'heatmap' && (dailyHeatmaps.length
+      ? <div className="daily-heatmaps">{dailyHeatmaps.map(({ day, selectedDate }) => <figure className="daily-heatmap" key={day.date}>
+          <HeatmapChart values={day.slots} coverage={day.coverage} dayStartHour={report.dayStartHour} selectedDate={selectedDate}/>
+          <figcaption>{day.date} ({WEEK_DAYS[selectedDate.getDay()]})</figcaption>
+        </figure>)}</div>
       : <MultiDayHeatmapChart hourlyActivity={slots} coverage={coverage} days={days} dayStartHour={report.dayStartHour}/>)}
     {chart === 'pie' && <div className="wide-chart">{single ? <AppPieChart appData={data.appTotals}/> : <MultiDayPieChart appTotals={data.appTotals} numDays={report.days.length}/>}</div>}
     {chart === 'bar' && <div className="wide-chart">{single ? <AppBarChart hourlyAppData={data.hourlyAppData[0]} dayStartHour={report.dayStartHour}/> : <MultiDayBarChart hourlyAppData={hourly} days={days} appTotals={data.appTotals} dayStartHour={report.dayStartHour}/>}</div>}

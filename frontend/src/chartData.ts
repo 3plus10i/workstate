@@ -54,7 +54,7 @@ export function chartDescription(report: Report, kind: 'heatmap' | 'pie' | 'bar'
       info: single
         ? `已点亮 ${active}/${slots.length} 格（${Math.round(active / slots.length * 100)}%），点亮时长 ${Math.floor(active * 5 / 60)}h${active * 5 % 60}m，活跃时长 ${duration(total)}`
         : `${prefix}总计 ${duration(total)}${averages}`,
-      explanation: `每格表示${single ? '5分钟' : '1小时'}，颜色越深越繁忙。${single ? '' : `${workdays.length}个工作日。`}一天从${report.dayStartHour}时起算。`,
+      explanation: `每格表示${count <= 3 ? '5分钟' : '1小时'}，颜色越深越繁忙。${single ? '' : `${workdays.length}个工作日。`}一天从${report.dayStartHour}时起算。`,
     }
   }
   return {

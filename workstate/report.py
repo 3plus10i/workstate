@@ -26,11 +26,11 @@ def build_report(repository, start, end, expanded=None):
             logical = (datetime.fromtimestamp(row.minute * 60) - timedelta(hours=settings["dayStartHour"])).date()
             candidates[(logical, identity.key, identity.context)] += 1
     count = (last - first).days + 1
-    single = count == 1
+    slot_minutes = 5 if count <= 3 else 60
     days = []
     for i in range(count):
         day = first + timedelta(days=i)
-        days.append({"date": day.isoformat(), "active": 0, "observed": 0, "slots": [0] * (288 if single else 24), "coverage": [0] * (288 if single else 24), "hourly": [dict() for _ in range(24)]})
+        days.append({"date": day.isoformat(), "active": 0, "observed": 0, "slots": [0] * (1440 // slot_minutes), "coverage": [0] * (1440 // slot_minutes), "hourly": [dict() for _ in range(24)]})
     applications, hourly_totals = {}, [0] * 24
     for row in rows:
         identity = identities[(row.process, row.title if expanded else "")]
@@ -42,7 +42,7 @@ def build_report(repository, start, end, expanded=None):
         if not 0 <= index < count:
             continue
         hour = (stamp.hour - settings["dayStartHour"]) % 24
-        slot = hour * 12 + stamp.minute // 5 if single else hour
+        slot = (hour * 60 + stamp.minute) // slot_minutes
         day = days[index]
         day["observed"] += 1
         day["coverage"][slot] += 1

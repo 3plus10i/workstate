@@ -289,6 +289,51 @@ class CleanupTests(RepositoryFixture):
 
 
 class ReportTests(RepositoryFixture):
+    def heatmap_rows(self):
+        first = date(2026, 7, 31)
+        self.repo.save_settings({'dayStartHour': 4})
+        for offset in range(4):
+            begin = minute_at(first + timedelta(days=offset)) + 4 * 60
+            self.repo.write_many(Activity(begin + minute, active, 'Code.exe', 'Demo') for minute, active in
+                                 [(0, True), (4, False), (5, True), (59, True), (60, False), (119, True), (1439, False)])
+        return first
+
+    def test_up_to_three_days_preserve_five_minute_activity_and_recording_coverage(self):
+        first = self.heatmap_rows()
+        expected_activity, expected_coverage = [0] * 288, [0] * 288
+        for slot in (0, 1, 11, 23):
+            expected_activity[slot] = 1
+        for slot in (1, 11, 12, 23, 287):
+            expected_coverage[slot] = 1
+        expected_coverage[0] = 2
+        for count in (1, 2, 3):
+            with self.subTest(days=count):
+                report = build_report(self.repo, first.isoformat(), (first + timedelta(days=count-1)).isoformat())
+                for day in report['days']:
+                    self.assertEqual(day['slots'], expected_activity)
+                    self.assertEqual(day['coverage'], expected_coverage)
+                self.assertEqual(report['summary']['activeMinutes'], count * 4)
+                self.assertEqual(report['summary']['observedMinutes'], count * 7)
+                self.assertEqual(sum(app['minutes'] for app in report['apps']), count * 4)
+                self.assertEqual(sum(sum(hour.values()) for day in report['days'] for hour in day['hourly']), count * 4)
+
+    def test_four_or_more_days_keep_hourly_activity_and_coverage(self):
+        first = self.heatmap_rows()
+        expected_activity, expected_coverage = [0] * 24, [0] * 24
+        expected_activity[0], expected_activity[1] = 3, 1
+        expected_coverage[0], expected_coverage[1], expected_coverage[23] = 4, 2, 1
+        for count in (4, 32):
+            with self.subTest(days=count):
+                report = build_report(self.repo, first.isoformat(), (first + timedelta(days=count-1)).isoformat())
+                for day in report['days'][:4]:
+                    self.assertEqual(day['slots'], expected_activity)
+                    self.assertEqual(day['coverage'], expected_coverage)
+                for day in report['days'][4:]:
+                    self.assertEqual(day['slots'], [0] * 24)
+                    self.assertEqual(day['coverage'], [0] * 24)
+                self.assertEqual(report['summary']['activeMinutes'], 16)
+                self.assertEqual(report['summary']['observedMinutes'], 28)
+
     def test_custom_ide_uses_same_daily_threshold_and_preserves_totals(self):
         day = date(2026, 8, 20)
         self.repo.save_settings({'dayStartHour': 0, 'customIdeProcesses': ['trae']})
