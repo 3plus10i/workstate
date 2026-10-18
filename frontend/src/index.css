@@ -3,6 +3,12 @@ body { margin: 0; color: #1f1f1f; background: #f5f5f5; font-family: "Segoe UI", 
 button, input, textarea, select { font: inherit; }
 .app-layout { max-width: 1320px; margin: 0 auto; padding: 12px 28px 16px; }
 .recording-controls .ant-tag { font-size: 14px; padding: 3px 10px; margin: 0; }
+.recording-toggle { display: inline-flex; padding: 0; border: 0; border-radius: 4px; background: none; cursor: pointer; }
+.recording-toggle .ant-tag { cursor: inherit; }
+.recording-toggle .ant-tag > .anticon:last-child { margin-left: 6px; }
+.recording-toggle:hover { filter: brightness(.97); }
+.recording-toggle:focus-visible { outline: 2px solid #1677ff; outline-offset: 3px; }
+.recording-toggle:disabled { cursor: not-allowed; opacity: .6; }
 .main-tabs { margin-top: 0; }
 .main-tabs .ant-tabs-nav { margin-bottom: 16px; }
 .main-tabs .ant-tabs-extra-content { margin-left: 20px; padding-bottom: 3px; }
@@ -72,6 +78,7 @@ footer { display: flex; justify-content: center; align-items: center; gap: 18px;
 .about-copy p { margin: 0 0 14px; }
 .about-copy ul { padding-left: 20px; margin: 0 0 22px; }
 .about-copy li + li { margin-top: 6px; }
+.about-copy .about-home, .about-copy .about-home:hover { color: inherit; font: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .about-meta { margin-bottom: 20px; }
 .update-notice { margin-bottom: 20px; }
 .update-panel { margin-bottom: 24px; padding: 20px; border: 1px solid #e3e3e3; border-radius: 8px; }

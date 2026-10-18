@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Alert, App, Button, Progress, Space, Tag } from 'antd'
+import { ExportOutlined } from '@ant-design/icons'
 import { call } from '../api'
 import type { UpdateStatus } from '../types'
 
@@ -42,8 +43,9 @@ export function About({ version, onBack }: { version: string; onBack: () => void
         <li>不想记录的程序可加入进程黑名单。历史记录长期保留，可手动清理或导出。</li>
         <li>导出文件可能含有网页标题、文档名等个人信息，分享前请检查。</li>
       </ul>
+      <p><a className="about-home" href={PROJECT_HOME} target="_blank" rel="noreferrer">项目主页 <ExportOutlined aria-hidden/></a></p>
     </div>
-    <Space wrap size="large" className="about-meta"><span>版本 {version}</span><Button loading={checking || update?.phase === 'checking'} disabled={busy} onClick={check}>检查更新</Button><a href={PROJECT_HOME} target="_blank" rel="noreferrer">项目主页</a></Space>
+    <Space wrap size="large" className="about-meta"><span>版本 {version}</span><Button loading={checking || update?.phase === 'checking'} disabled={busy} onClick={check}>检查更新</Button></Space>
     {update?.phase === 'latest' && <Alert className="update-notice" type="success" showIcon title="当前已是最新版本"/>}
     {update?.phase === 'unpublished' && <Alert className="update-notice" type="info" showIcon title="暂未发布可更新的正式版本"/>}
     {update?.error && <Alert className="update-notice" type="error" showIcon title={update.error}/>}

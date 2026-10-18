@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { version as APP_VERSION } from '../../package.json'
 import dayjs from 'dayjs'
 import { Alert, App as AntApp, Button, Dropdown, Empty, Pagination, Segmented, Space, Spin, Switch, Tabs, Tag, Tooltip } from 'antd'
-import { BarChartOutlined, CheckOutlined, DownOutlined, AppstoreOutlined, InfoCircleOutlined, PieChartOutlined, PauseOutlined, PlayCircleOutlined, ReloadOutlined } from '@ant-design/icons'
+import { BarChartOutlined, CheckOutlined, DownOutlined, AppstoreOutlined, InfoCircleOutlined, LoadingOutlined, PieChartOutlined, PlayCircleOutlined, ReloadOutlined } from '@ant-design/icons'
 import { ReportChart } from './ReportChart'
 import { RecentData } from './RecentData'
 import { ConfigPanel } from './ConfigPanel'
@@ -36,6 +36,7 @@ export function App() {
   const request = useRef(0)
   const recordingRevision = useRef(0)
   const [recentRevision,setRecentRevision] = useState(0)
+  const [recentBusy,setRecentBusy] = useState(false)
   const settings = bootstrap?.settings
   const initialize = useCallback(async () => {
     setError(''); setBusy(true)
@@ -115,14 +116,15 @@ export function App() {
     if (revision === recordingRevision.current) setRecordingBusy(false)
   }
   const ChartIcon = CHART_ICONS[chart]
+  const recordingTag = <button type="button" className="recording-toggle" disabled={!bootstrap || recordingBusy} aria-busy={recordingBusy} aria-label={status?.paused ? '恢复记录' : '暂停记录'} title={status?.paused ? '点击恢复记录' : '暂停记录'} aria-haspopup={status?.paused ? undefined : 'menu'} onClick={status?.paused ? () => changeRecording({paused:false}) : undefined}>
+    <Tag color={status?.paused ? 'default' : status?.demo ? 'gold' : status?.collecting ? 'success' : 'default'} icon={recordingBusy ? <LoadingOutlined/> : status?.paused ? <PlayCircleOutlined/> : <CheckOutlined/>}>
+      {status?.paused ? resumeTimeLabel(status.resumeAt, status.now) : status?.demo ? '演示数据' : status?.collecting ? '记录中' : bootstrap ? '开发预览' : '正在连接'}
+      {!status?.paused && <DownOutlined/>}
+    </Tag>
+  </button>
   const recordingControls = <Space size="small" className="recording-controls">
-    {status?.demo && <Tag color="gold">演示数据</Tag>}
-    {(!status?.demo || status?.paused) && <Tag color={status?.paused ? 'default' : status?.collecting ? 'success' : 'default'} icon={status?.paused ? <PauseOutlined/> : <CheckOutlined/>}>{status?.paused ? resumeTimeLabel(status.resumeAt, status.now) : status?.collecting ? '记录中' : '开发预览'}</Tag>}
-    {status?.paused
-      ? <Button loading={recordingBusy} icon={<PlayCircleOutlined/>} onClick={() => changeRecording({paused:false})}>恢复记录</Button>
-      : <Dropdown trigger={['click']} menu={{ items: PAUSE_OPTIONS, onClick: ({key}) => changeRecording({pauseMinutes:Number(key)}) }} disabled={!bootstrap || recordingBusy}>
-          <Button disabled={!bootstrap} loading={recordingBusy} icon={<PauseOutlined/>}>暂停记录 <DownOutlined/></Button>
-        </Dropdown>}
+    {status?.paused ? recordingTag : <Dropdown trigger={['click']} menu={{ items: PAUSE_OPTIONS, onClick: ({key}) => changeRecording({pauseMinutes:Number(key)}) }} disabled={!bootstrap || recordingBusy}>{recordingTag}</Dropdown>}
+    {(page === 'report' || page === 'recent') && <Button icon={<ReloadOutlined/>} loading={page === 'report' ? busy : recentBusy} aria-label={page === 'report' ? '刷新报表' : '刷新近期数据'} onClick={() => page === 'report' ? setRefresh(v => v+1) : setRecentRevision(v => v+1)}>刷新</Button>}
   </Space>
   return <div className="app-layout">
     <Tabs className="main-tabs" size="large" activeKey={page === 'about' ? '' : page} tabBarExtraContent={{ right: recordingControls }} onChange={key => { setPage(key); if (key === 'config') run(async () => { const storage = await call<Storage>('storage'); setBootstrap(data => data ? {...data,storage} : data) }) }} items={[{ key:'report',label:'时间报表' },{ key:'recent',label:'近期数据' },{ key:'config',label:'设置' }]}/>
@@ -130,7 +132,7 @@ export function App() {
     {statusError && <Alert className="page-alert" type="warning" title="连接异常，正在重试" showIcon/>}
     {status?.error && <Alert className="page-alert" type="error" title={status.error} showIcon/>}
     {page === 'report' && <>
-      <section className="report-toolbar" aria-label="报表选项"><Space wrap size="middle"><DateRange value={range} onChange={setRange}/><Segmented value={chart} onChange={value => setChart(value as Chart)} options={[{value:'heatmap',label:'热力图',icon:<AppstoreOutlined/>},{value:'pie',label:'饼图',icon:<PieChartOutlined/>},{value:'bar',label:'柱状图',icon:<BarChartOutlined/>}]}/></Space><Space wrap size="middle"><label className="switch-label"><Switch aria-label="细分内容" checked={expanded} onChange={setExpanded}/>细分内容</label><Tooltip title="单日活跃时长超过细分单列门槛的项目、文档和网站会单独显示。"><InfoCircleOutlined className="help-icon"/></Tooltip><Button icon={<ReloadOutlined/>} loading={busy} aria-label="刷新报表" onClick={() => setRefresh(v => v+1)}>刷新</Button></Space></section>
+      <section className="report-toolbar" aria-label="报表选项"><Space wrap size="middle"><DateRange value={range} onChange={setRange}/><Segmented value={chart} onChange={value => setChart(value as Chart)} options={[{value:'heatmap',label:'热力图',icon:<AppstoreOutlined/>},{value:'pie',label:'饼图',icon:<PieChartOutlined/>},{value:'bar',label:'柱状图',icon:<BarChartOutlined/>}]}/></Space><Space wrap size="middle"><label className="switch-label"><Switch aria-label="细分内容" checked={expanded} onChange={setExpanded}/>细分内容</label><Tooltip title="单日活跃时长超过细分单列门槛的项目、文档和网站会单独显示。"><InfoCircleOutlined className="help-icon"/></Tooltip></Space></section>
       <section className="chart-card"><Spin spinning={busy}><div className="chart-scroll" aria-label="图表区域">
         {report ? <ReportChart report={report} chart={chart} page={chartPage}/> : !busy && <Empty description="没有可用记录"/>}
       </div></Spin>
@@ -138,7 +140,7 @@ export function App() {
       {description && <div className="chart-description"><p><ChartIcon className="chart-description-icon" aria-hidden/>{description.info}</p><p>{description.explanation}</p></div>}
       </section>
     </>}
-    {page === 'recent' && bootstrap && <RecentData revision={recentRevision} onRefresh={() => setRecentRevision(v => v+1)}/>}
+    {page === 'recent' && bootstrap && <RecentData revision={recentRevision} loading={recentBusy} onLoadingChange={setRecentBusy}/>}
     {page === 'config' && bootstrap && <ConfigPanel activeSection={settingsSection} onSectionChange={setSettingsSection} bootstrap={bootstrap} onSave={saveSettings} onBack={() => setPage('report')} onExport={exportRange} onOpenDirectory={async () => {await call('openData')}} onStartup={async enabled => { const startup = await call<boolean>('startup',{enabled}); setBootstrap(data => data ? {...data,startup} : data) }} onStorageChange={storage => { setBootstrap(data => data ? {...data,storage} : data); setRefresh(v => v+1) }}/>}
     {!bootstrap && busy && <div className="initial-loading"><Spin size="large"/></div>}
     {page === 'about' && <About version={status?.version || APP_VERSION} onBack={() => setPage(aboutBack)}/>}
