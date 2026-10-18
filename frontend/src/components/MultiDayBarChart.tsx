@@ -1,4 +1,4 @@
-import { escapeHtml } from '../chartData'
+import { barDateLabel, escapeHtml } from '../chartData'
 import { BAR_EMPHASIS, barValue } from '../barStyle'
 import { useEffect, useRef } from 'react'
 import * as echarts from '../echarts'
@@ -59,15 +59,7 @@ export function MultiDayBarChart({ hourlyAppData, days, appTotals, dayStartHour 
       }
     })
 
-    const xAxisData = days.map(day => {
-      const dateStr = day.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')
-      const d = new Date(dateStr + 'T00:00:00')
-      const weekDays = ['日', '一', '二', '三', '四', '五', '六']
-      if (compact) {
-        return `${d.getMonth() + 1}/${d.getDate()}\n${weekDays[d.getDay()]}`
-      }
-      return `${d.getMonth() + 1}/${d.getDate()}(${weekDays[d.getDay()]})`
-    })
+    const xAxisData = days.map(day => barDateLabel(day, compact))
 
     chart.setOption({
       tooltip: {

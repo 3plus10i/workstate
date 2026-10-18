@@ -134,7 +134,7 @@ export function App() {
     {page === 'report' && <>
       <section className="report-toolbar" aria-label="报表选项"><Space wrap size="middle"><DateRange value={range} onChange={setRange}/><Segmented value={chart} onChange={value => setChart(value as Chart)} options={[{value:'heatmap',label:'热力图',icon:<AppstoreOutlined/>},{value:'pie',label:'饼图',icon:<PieChartOutlined/>},{value:'bar',label:'柱状图',icon:<BarChartOutlined/>}]}/></Space><Space wrap size="middle"><label className="switch-label"><Switch aria-label="细分内容" checked={expanded} onChange={setExpanded}/>细分内容</label><Tooltip title="单日活跃时长超过细分单列门槛的项目、文档和网站会单独显示。"><InfoCircleOutlined className="help-icon"/></Tooltip></Space></section>
       <section className="chart-card"><Spin spinning={busy}><div className="chart-scroll" aria-label="图表区域">
-        {report ? <ReportChart report={report} chart={chart} page={chartPage}/> : !busy && <Empty description="没有可用记录"/>}
+        {report ? <ReportChart report={report} chart={chart} page={chartPage} today={dayjs(status?.now).format('YYYY-MM-DD')}/> : !busy && <Empty description="没有可用记录"/>}
       </div></Spin>
       {numDays > 31 && chart !== 'pie' && <div className="chart-pagination"><span>图中显示第 {start+1}–{Math.min(start+31,numDays)} 天</span><Pagination size="small" pageSize={31} total={numDays} current={chartPage} onChange={setChartPage} showSizeChanger={false}/></div>}
       {description && <div className="chart-description"><p><ChartIcon className="chart-description-icon" aria-hidden/>{description.info}</p><p>{description.explanation}</p></div>}

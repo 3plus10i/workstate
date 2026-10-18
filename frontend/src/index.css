@@ -21,7 +21,9 @@ button, input, textarea, select { font: inherit; }
 .heatmap-stage { padding-top: 22px; padding-bottom: 12px; min-height: 200px; align-items: flex-start; }
 .daily-heatmaps { display: flex; align-items: flex-start; gap: 28px; }
 .daily-heatmap { flex: 0 0 auto; margin: 0; }
-.daily-heatmap figcaption { margin-top: 14px; padding-left: 44px; text-align: center; font-size: 16px; line-height: 1.5; white-space: nowrap; }
+.chart-figure { margin: 0; }
+.chart-date-caption { margin-top: 14px; text-align: center; font-size: 16px; line-height: 1.5; white-space: nowrap; }
+.daily-heatmap .chart-date-caption { padding-left: 44px; }
 .wide-chart { width: 100%; min-width: 790px; }
 .chart-description { border-top: 1px solid #e8e8e8; margin-top: 14px; padding: 16px 4px 0; line-height: 1.9; font-size: 16px; color: #1f1f1f; }
 .chart-description p { margin: 0; }

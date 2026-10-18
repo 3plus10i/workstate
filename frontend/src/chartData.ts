@@ -1,6 +1,20 @@
 import dayjs from 'dayjs'
 import type { Report } from './types'
 
+const WEEK_DAYS = ['日', '一', '二', '三', '四', '五', '六']
+
+export function dailyDateLabel(value: string, today: string): string {
+  const date = dayjs(value).startOf('day')
+  const ago = dayjs(today).startOf('day').diff(date, 'day')
+  const relative = ['今天', '昨天', '前天'][ago]
+  return `${date.format('YYYY-MM-DD')} (${WEEK_DAYS[date.day()]})${relative ? ` ${relative}` : ''}`
+}
+
+export function barDateLabel(value: string, compact: boolean): string {
+  const date = dayjs(value.replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3'))
+  return `${date.format('M/D')}${compact ? '\n' : ' '}（${WEEK_DAYS[date.day()]}）`
+}
+
 export function escapeHtml(value: unknown): string {
   return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]!))
 }

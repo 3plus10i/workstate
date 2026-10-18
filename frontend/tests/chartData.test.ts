@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { chartData, chartDescription, escapeHtml } from '../src/chartData.ts'
+import { barDateLabel, chartData, chartDescription, dailyDateLabel, escapeHtml } from '../src/chartData.ts'
 import type { Application, Report } from '../src/types.ts'
 
 function fixture(apps: Application[]): Report {
@@ -13,6 +13,29 @@ function fixture(apps: Application[]): Report {
   }
 }
 const app = (key: string,minutes: number,name=key): Application => ({ key,minutes,app:name,context:'',kind:'app' })
+
+test('daily captions mark only today, yesterday and the day before yesterday', () => {
+  const today = '2026-10-18'
+  assert.equal(dailyDateLabel('2026-10-18',today),'2026-10-18 (日) 今天')
+  assert.equal(dailyDateLabel('2026-10-17',today),'2026-10-17 (六) 昨天')
+  assert.equal(dailyDateLabel('2026-10-16',today),'2026-10-16 (五) 前天')
+  assert.equal(dailyDateLabel('2026-10-15',today),'2026-10-15 (四)')
+  assert.equal(dailyDateLabel('2026-10-19',today),'2026-10-19 (一)')
+})
+
+test('daily captions follow calendar boundaries across years and leap days', () => {
+  assert.equal(dailyDateLabel('2026-12-31','2027-01-01'),'2026-12-31 (四) 昨天')
+  assert.equal(dailyDateLabel('2026-12-30','2027-01-01'),'2026-12-30 (三) 前天')
+  assert.equal(dailyDateLabel('2024-02-29','2024-03-01'),'2024-02-29 (四) 昨天')
+  assert.equal(dailyDateLabel('2024-02-28','2024-03-01'),'2024-02-28 (三) 前天')
+  assert.equal(dailyDateLabel('2026-10-17','2026-10-19'),'2026-10-17 (六) 前天')
+})
+
+test('multi-day bar ticks retain two lines and enclose weekdays in parentheses', () => {
+  assert.equal(barDateLabel('20261012',true),'10/12\n（一）')
+  assert.equal(barDateLabel('2026-10-18',true),'10/18\n（日）')
+  assert.equal(barDateLabel('20261012',false),'10/12 （一）')
+})
 
 test('duplicate display names are merged without losing minutes', () => {
   const data = chartData(fixture([app('first',40,'Editor'),app('second',30,'Editor'),app('third',30,'Browser')]))
