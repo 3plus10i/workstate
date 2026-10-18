@@ -1,6 +1,7 @@
 import { useEffect, useRef, useMemo } from 'react'
 import * as echarts from '../echarts'
 import { formatDateToYYYYMMDD } from '../dataProcessor'
+import { EMPTY_CELL_COLOR, HEATMAP_TOOLTIP, heatmapActivityLabel, heatmapCellStyle } from '../heatmap'
 
 // ========== 图表常量 ==========
 const COLS = 24                         // 小时列数
@@ -50,8 +51,7 @@ function interpolateColor(startColor: string, endColor: string, steps: number): 
   })
 }
 
-const COLORS = ['#eee', ...interpolateColor('#cce5ff', '#007bff', COLOR_STEPS)]
-const BORDER_COLOR = COLORS[COLORS.length - 1]
+const COLORS = [EMPTY_CELL_COLOR, ...interpolateColor('#cce5ff', '#007bff', COLOR_STEPS)]
 
 function calcPositions(count: number, size: number, gap: number, groupSize: number, groupGap: number): number[] {
   const positions = [0]
@@ -168,15 +168,13 @@ export function MultiDayHeatmapChart({ hourlyActivity, coverage, days, dayStartH
       xAxis: { show: false, type: 'value', min: 0, max: width },
       yAxis: { show: false, type: 'value', min: 0, max: height, inverse: true },
       tooltip: {
-        trigger: 'item', backgroundColor: '#333',
-        textStyle: { fontSize: 14, color: '#fff' }, padding: [4, 8], borderRadius: 4, appendToBody: true,
-        position: (p: number[]) => [p[0] + 10, p[1] - 25],
+        ...HEATMAP_TOOLTIP,
         formatter: (params: any) => {
           const item = params.data?.[0]
           if (!item) return ''
           const ds = item.day.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')
           const next = item.hourIndex >= (24 - dayStartHour) && dayStartHour > 0
-          return `${ds} ${item.hour}:00 ${next ? '次日' : ''}<br/>${item.recorded === 0 ? '无记录' : `活跃时间: ${item.value}分钟${item.recorded === undefined ? '' : ` / 已记录${item.recorded}分钟`}`}`
+          return `${ds} ${item.hour}:00 ${next ? '次日' : ''}<br/>${heatmapActivityLabel(item.value, item.recorded)}`
         }
       },
       series: [{
@@ -189,7 +187,7 @@ export function MultiDayHeatmapChart({ hourlyActivity, coverage, days, dayStartH
           return {
             type: 'rect',
             shape: { x: x - w / 2, y: y - h / 2, width: w, height: h, r: item.isCurrent ? size / 2 : CORNER_RADIUS },
-            style: { fill: item.color, lineWidth: item.isCurrent ? 1 : 0, stroke: item.isCurrent ? BORDER_COLOR : undefined },
+            style: heatmapCellStyle(item.color, item.recorded, item.isCurrent),
             name: `${item.day}-${item.hour}`
           }
         },

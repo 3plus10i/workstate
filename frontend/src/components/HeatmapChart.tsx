@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import * as echarts from '../echarts'
+import { EMPTY_CELL_COLOR, HEATMAP_TOOLTIP, heatmapActivityLabel, heatmapCellStyle } from '../heatmap'
 
 interface HeatmapChartProps {
   values: number[]
@@ -35,8 +36,7 @@ function interpolateColor(startColor: string, endColor: string, steps: number): 
   return colors
 }
 
-const COLORS = ['#eee', ...interpolateColor('#cce5ff', '#007bff', 5)]
-const BORDER_COLOR = COLORS[COLORS.length - 1]  // 最蓝的颜色
+const COLORS = [EMPTY_CELL_COLOR, ...interpolateColor('#cce5ff', '#007bff', 5)]
 const ROWS = 24
 const COLS = 12
 const SIZE = 16
@@ -159,19 +159,10 @@ export function HeatmapChart({ values, coverage, size = SIZE, dayStartHour = 0, 
         axisLine: { show: false }
       },
       tooltip: {
-        trigger: 'item',
-        backgroundColor: '#333',
-        textStyle: {
-          fontSize: 14,
-          color: '#fff'
-        },
-        padding: [4, 8],
-        borderRadius: 4,
-        appendToBody: true,
-        position: (point: number[]) => [point[0] + 10, point[1] - 25],
+        ...HEATMAP_TOOLTIP,
         formatter: (params: any) => {
           const item = params.data?.[0]
-          return item ? `${item.timeStr}<br/>${item.recorded === 0 ? '无记录' : `活跃 ${item.value} 分钟${item.recorded === undefined ? '' : ` / 已记录 ${item.recorded} 分钟`}`}` : ''
+          return item ? `${item.timeStr}<br/>${heatmapActivityLabel(item.value, item.recorded)}` : ''
         }
       },
       series: [
@@ -197,11 +188,7 @@ export function HeatmapChart({ values, coverage, size = SIZE, dayStartHour = 0, 
                 height: h,
                 r: isCurrent ? SIZE / 2 : 2
               },
-              style: {
-                fill: COLORS[dataItem.value],
-                lineWidth: isCurrent ? 1 : 0,
-                stroke: isCurrent ? BORDER_COLOR : undefined
-              },
+              style: heatmapCellStyle(COLORS[dataItem.value], dataItem.recorded, isCurrent),
               name: dataItem.timeStr
             }
           },
