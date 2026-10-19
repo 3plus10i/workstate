@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react'
 import dayjs from 'dayjs'
 import type { Report } from '../types'
-import { chartData, dailyDateLabel } from '../chartData'
+import { chartData, dailyDateLabel, duration } from '../chartData'
 import { HeatmapChart } from './HeatmapChart'
 import { MultiDayHeatmapChart } from './MultiDayHeatmapChart'
 import { AppPieChart } from './AppPieChart'
@@ -25,7 +25,7 @@ export const ReportChart = memo(function ReportChart({ report, chart, page, toda
     {chart === 'heatmap' && (dailyHeatmaps.length
       ? <div className="daily-heatmaps">{dailyHeatmaps.map(({ day, selectedDate }) => <figure className="daily-heatmap" key={day.date}>
           <HeatmapChart values={day.slots} coverage={day.coverage} dayStartHour={report.dayStartHour} selectedDate={selectedDate}/>
-          <figcaption className="chart-date-caption">{dailyDateLabel(day.date, today)}</figcaption>
+          <figcaption className="chart-date-caption">{dailyDateLabel(day.date, today)}<br/>日活跃时长 {duration(day.active)}</figcaption>
         </figure>)}</div>
       : <MultiDayHeatmapChart hourlyActivity={slots} coverage={coverage} days={days} dayStartHour={report.dayStartHour}/>)}
     {chart === 'pie' && <figure className="chart-figure wide-chart">{single ? <AppPieChart appData={data.appTotals}/> : <MultiDayPieChart appTotals={data.appTotals} numDays={report.days.length}/>} {dateCaption}</figure>}

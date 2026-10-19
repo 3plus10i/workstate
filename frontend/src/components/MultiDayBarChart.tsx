@@ -1,5 +1,5 @@
-import { barDateLabel, escapeHtml } from '../chartData'
-import { BAR_EMPHASIS, barValue } from '../barStyle'
+import { barDateLabel, escapeHtml, formatNumber } from '../chartData'
+import { activeBarItems, BAR_EMPHASIS, barValue } from '../barStyle'
 import { useEffect, useRef } from 'react'
 import * as echarts from '../echarts'
 
@@ -37,7 +37,7 @@ export function MultiDayBarChart({ hourlyAppData, days, appTotals, dayStartHour 
       return
     }
 
-    // appTotals 和 hourlyAppData 已在后端完成合并（≥90%累计占比 或 >12个应用）
+    // 总量和各小时数据使用相同的显示名及“其他”合并规则。
     const apps = Object.keys(appTotals)
     const dailyAppTotals: Record<string, number>[] = hourlyAppData.map(dayHourlyData => {
       const dayTotals: Record<string, number> = {}
@@ -74,7 +74,7 @@ export function MultiDayBarChart({ hourlyAppData, days, appTotals, dayStartHour 
           const dayLabel = xAxisData[dayIndex]
           let totalHours = 0
           const appData: { app: string; hours: number; color: string }[] = []
-          params.forEach((param: any) => {
+          activeBarItems(params as { value: unknown; seriesName: string; color: string }[]).forEach(param => {
             totalHours += param.value
             if (param.value > 0) {
               appData.push({ app: param.seriesName, hours: param.value, color: param.color })
@@ -82,11 +82,11 @@ export function MultiDayBarChart({ hourlyAppData, days, appTotals, dayStartHour 
           })
           appData.sort((a, b) => b.hours - a.hours)
           let html = `<div style="font-weight:bold;margin-bottom:8px;">${dayLabel}</div>`
-          html += `<div style="margin-bottom:4px;">总计: ${totalHours.toFixed(1)}h</div>`
+          html += `<div style="margin-bottom:4px;">总计: ${formatNumber(totalHours)}h</div>`
           html += `<table style="border-collapse: collapse; width: 100%;">`
           appData.forEach(item => {
-            const timeStr = item.hours >= 1 ? `${item.hours.toFixed(1)}h` : `${Math.round(item.hours * 60)}m`
-            const pct = totalHours > 0 ? Math.round(item.hours / totalHours * 100) : 0
+            const timeStr = item.hours >= 1 ? `${formatNumber(item.hours)}h` : `${formatNumber(item.hours * 60)}m`
+            const pct = totalHours > 0 ? formatNumber(item.hours / totalHours * 100) : '0'
             html += `<tr style="border-bottom: 1px solid #f0f0f0;">`
             html += `<td style="padding: 3px 8px; text-align: left;">`
             html += `<span style="display:inline-block;width:10px;height:10px;background:${item.color};border-radius:2px;margin-right:6px;"></span>${escapeHtml(item.app)}</td>`
@@ -116,9 +116,9 @@ export function MultiDayBarChart({ hourlyAppData, days, appTotals, dayStartHour 
         axisTick: { lineStyle: { color: '#e8e8e8' } }
       },
       yAxis: {
-        type: 'value', name: '小时',
+        type: 'value', name: '小时', minInterval: 0.1,
         nameTextStyle: { fontSize: 14, color: '#262626' },
-        axisLabel: { fontSize: 14, color: '#262626', formatter: (v: number) => v.toString() },
+        axisLabel: { fontSize: 14, color: '#262626', formatter: (v: number) => formatNumber(v) },
         axisLine: { lineStyle: { color: '#e8e8e8' } },
         axisTick: { lineStyle: { color: '#e8e8e8' } },
         splitLine: { lineStyle: { color: '#f0f0f0' } }

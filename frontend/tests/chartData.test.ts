@@ -1,18 +1,33 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { barDateLabel, chartData, chartDescription, dailyDateLabel, escapeHtml } from '../src/chartData.ts'
+import { barDateLabel, chartData, chartDescription, dailyDateLabel, duration, escapeHtml, formatNumber } from '../src/chartData.ts'
 import type { Application, Report } from '../src/types.ts'
 
 function fixture(apps: Application[]): Report {
   const total = apps.reduce((sum,app) => sum+app.minutes,0)
   return {
-    start:'2026-10-13',end:'2026-10-13',dayStartHour:4,expanded:false,threshold:10,
+    start:'2026-10-13',end:'2026-10-13',dayStartHour:4,activityGranularity:1,expanded:false,threshold:10,
     apps,
     days:[{ date:'2026-10-13',active:total,observed:total,slots:[total],coverage:[total],hourly:[Object.fromEntries(apps.map(app => [app.key,app.minutes]))] }],
-    summary:{ activeMinutes:total,observedMinutes:total,idleMinutes:0,dailyAverage:total,recordedDays:1,peakHour:4,topApp:apps[0] || null },
+    summary:{ activeMinutes:total,rawActiveMinutes:total,fiveMinuteActiveMinutes:Math.ceil(total/5)*5,observedMinutes:total,idleMinutes:0,dailyAverage:total,recordedDays:1,peakHour:4,topApp:apps[0] || null },
   }
 }
 const app = (key: string,minutes: number,name=key): Application => ({ key,minutes,app:name,context:'',kind:'app' })
+
+test('fractional allocation stays precise until labels are formatted to at most one decimal', () => {
+  const report = fixture([app('A',5/3),app('B',10/3)])
+  report.activityGranularity = 5
+  const data = chartData(report)
+  assert.equal(data.appTotals.A,5/3)
+  assert.equal(data.hourlyAppData[0][0].B,10/3)
+  assert.equal(Object.values(data.appTotals).reduce((sum,value) => sum+value,0),5)
+  assert.equal(duration(5/3),'1.7m')
+  assert.equal(duration(200/3),'1h6.7m')
+  assert.equal(duration(59.96),'1h0m')
+  assert.equal(formatNumber(10/3),'3.3')
+  assert.equal(formatNumber(100),'100')
+  for (const kind of ['heatmap','pie','bar'] as const) assert.match(chartDescription(report,kind).explanation,/按5分钟粒度统计/)
+})
 
 test('daily captions mark only today, yesterday and the day before yesterday', () => {
   const today = '2026-10-18'

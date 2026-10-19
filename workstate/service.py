@@ -11,7 +11,7 @@ from . import __version__
 from .models import minute_at, month_before, parse_range
 from .legacy import LegacyImport
 from .report import build_report
-from .settings import DEFAULT_PROGRAMS
+from .settings import DEFAULT_PROGRAMS, validate_settings
 from .updates import Updater
 
 log = logging.getLogger(__name__)
@@ -137,6 +137,13 @@ class Service:
             return self.repository.recent(end, page, size)
         if method == "saveSettings":
             return self.repository.save_settings(payload)
+        if method == "activityPreview":
+            if set(payload) - {"dayStartHour", "excludedProcesses"}:
+                raise ValueError("预览参数无效")
+            settings = validate_settings({**self.repository.settings(), **payload})
+            today = (datetime.now() - timedelta(hours=settings["dayStartHour"])).date().isoformat()
+            summary = build_report(self.repository, today, today, False, settings)["summary"]
+            return {"date": today, "oneMinute": summary["rawActiveMinutes"], "fiveMinutes": summary["fiveMinuteActiveMinutes"]}
         if method == "recording":
             if set(payload) == {"paused"} and payload["paused"] is False:
                 self._set_recording()

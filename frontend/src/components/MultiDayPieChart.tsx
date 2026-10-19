@@ -1,16 +1,10 @@
-import { escapeHtml } from '../chartData'
+import { duration, escapeHtml, formatNumber } from '../chartData'
 import { useEffect, useRef } from 'react'
 import * as echarts from '../echarts'
 
 interface MultiDayPieChartProps {
   appTotals: Record<string, number>
   numDays: number
-}
-
-function formatMinutes(minutes: number): string {
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return h > 0 ? `${h}h${m}m` : `${m}m`
 }
 
 export function MultiDayPieChart({ appTotals, numDays }: MultiDayPieChartProps) {
@@ -43,8 +37,7 @@ export function MultiDayPieChart({ appTotals, numDays }: MultiDayPieChartProps) 
       .sort((a, b) => b.value - a.value)
 
     const totalMinutes = Object.values(appTotals).reduce((s, v) => s + v, 0)
-    const avgMin = Math.round(totalMinutes / numDays)
-    const centerText = `总计 ${formatMinutes(totalMinutes)}\n日均 ${formatMinutes(avgMin)}`
+    const centerText = `总计 ${duration(totalMinutes)}\n日均 ${duration(totalMinutes / numDays)}`
 
     const colors = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#eb2f96', '#fa8c16', '#13c2c2', '#2f54eb', '#a0d911']
 
@@ -57,7 +50,7 @@ export function MultiDayPieChart({ appTotals, numDays }: MultiDayPieChartProps) 
         textStyle: { fontSize: 14, color: 'rgba(0,0,0,0.85)' },
         padding: [8, 12],
         formatter: (params: any) => {
-          return `${escapeHtml(params.name)}<br/>${formatMinutes(params.value)} (${params.percent}%)`
+          return `${escapeHtml(params.name)}<br/>${duration(params.value)} (${formatNumber(params.percent)}%)`
         }
       },
       graphic: totalMinutes > 0 ? [{
@@ -74,13 +67,14 @@ export function MultiDayPieChart({ appTotals, numDays }: MultiDayPieChartProps) 
       }] : undefined,
       series: [{
         name: '应用时长', type: 'pie',
+        percentPrecision: 1,
         radius: ['35%', '65%'], center: ['50%', '50%'],
         avoidLabelOverlap: true,
         itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
         label: {
           show: true, position: 'outside',
           formatter: (params: any) => {
-            return `${params.name}: ${formatMinutes(params.value)} (${params.percent}%)`
+            return `${params.name}: ${duration(params.value)} (${formatNumber(params.percent)}%)`
           },
           fontSize: 14, color: '#262626',
           distanceToLabelLine: 4

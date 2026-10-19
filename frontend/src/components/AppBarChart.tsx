@@ -1,4 +1,4 @@
-import { escapeHtml } from '../chartData'
+import { escapeHtml, formatNumber } from '../chartData'
 import { BAR_EMPHASIS, barValue } from '../barStyle'
 import { useEffect, useRef } from 'react'
 import * as echarts from '../echarts'
@@ -128,7 +128,7 @@ export function AppBarChart({ hourlyAppData, dayStartHour }: AppBarChartProps) {
         total += (hourData[app] || 0)
       })
       const hourTotal = Object.values(hourData).reduce((sum, val) => sum + val, 0)
-      return hourTotal - total
+      return Math.max(0, hourTotal - total)
     })
 
     seriesData.push({
@@ -198,12 +198,12 @@ export function AppBarChart({ hourlyAppData, dayStartHour }: AppBarChartProps) {
 
           appEntries.forEach(([app, value]) => {
             const color = appColors.get(app) || '#d9d9d9'
-            const pct = Math.round(value / hourTotal * 100)
+            const pct = formatNumber(value / hourTotal * 100)
             tableHtml += `<tr style="border-bottom: 1px solid #f0f0f0;">`
             tableHtml += `<td style="padding: 4px 8px; text-align: left;">`
             tableHtml += `<span style="display: inline-block; width: 10px; height: 10px; background: ${color}; border-radius: 2px; margin-right: 6px;"></span>`
             tableHtml += `${escapeHtml(app)}</td>`
-            tableHtml += `<td style="padding: 4px 8px; text-align: right; white-space: nowrap; color: rgba(0,0,0,0.85);">${value}m (${pct}%)</td>`
+            tableHtml += `<td style="padding: 4px 8px; text-align: right; white-space: nowrap; color: rgba(0,0,0,0.85);">${formatNumber(value)}m (${pct}%)</td>`
             tableHtml += `</tr>`
           })
 
@@ -258,7 +258,8 @@ export function AppBarChart({ hourlyAppData, dayStartHour }: AppBarChartProps) {
         },
         axisLabel: {
           fontSize: 14,
-          color: '#262626'
+          color: '#262626',
+          formatter: (value: number) => formatNumber(value)
         },
         axisLine: {
           lineStyle: {

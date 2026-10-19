@@ -1,6 +1,7 @@
 export interface Settings {
   dayStartHour: number
   idleSeconds: number
+  activityGranularity: 1 | 5
   expandContexts: boolean
   detailThreshold: number
   splitIde: boolean
@@ -50,12 +51,15 @@ export interface Report {
   start: string
   end: string
   dayStartHour: number
+  activityGranularity: 1 | 5
   expanded: boolean
   threshold: number
   days: Day[]
   apps: Application[]
   summary: {
     activeMinutes: number
+    rawActiveMinutes: number
+    fiveMinuteActiveMinutes: number
     observedMinutes: number
     idleMinutes: number
     dailyAverage: number
@@ -65,6 +69,7 @@ export interface Report {
   }
 }
 export interface Bootstrap { settings: Settings; programDefaults: Pick<Settings, 'ideProcesses' | 'documentProcesses' | 'browserProcesses'>; storage: Storage; status: Status; startup: boolean }
+export interface ActivityPreview { date: string; oneMinute: number; fiveMinutes: number }
 export interface ExportResult { cancelled?: boolean; content?: string; filename: string; count: number }
 
 export interface RecentRow { minute: number; time: string; active: boolean; process: string; title: string }

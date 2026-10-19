@@ -4,9 +4,27 @@ import { init, use } from 'echarts/core.js'
 import { BarChart } from 'echarts/charts.js'
 import { GridComponent } from 'echarts/components.js'
 import { SVGRenderer } from 'echarts/renderers.js'
-import { BAR_EMPHASIS, barValue } from '../src/barStyle.ts'
+import { activeBarItems, BAR_EMPHASIS, barValue } from '../src/barStyle.ts'
 
 use([BarChart, GridComponent, SVGRenderer])
+
+test('axis tooltips ignore ECharts missing values when totaling applications present on a day', () => {
+  const chart = init(null, undefined, { renderer: 'svg', ssr: true, width: 800, height: 400 })
+  try {
+    chart.setOption({ animation: false, xAxis: { data: ['first', 'second', 'empty'] }, yAxis: {}, series: [
+      { name: 'Editor', type: 'bar', data: [1.5, 0, 0].map(barValue) },
+      { name: 'Browser', type: 'bar', data: [0, 1.2, 0].map(barValue) },
+      { name: 'Notes', type: 'bar', data: [0.5, 0, 0].map(barValue) },
+    ] })
+    for (const [day, expected] of [[0, 2], [1, 1.2], [2, 0]]) {
+      const params = chart.getModel().getSeries().map(series => series.getDataParams(day))
+      const values = activeBarItems(params)
+      const total = values.reduce((sum, item) => sum + item.value, 0)
+      assert.equal(total, expected)
+      if (total) assert.ok(Math.abs(values.reduce((sum, item) => sum + item.value / total * 100, 0) - 100) < 1e-9)
+    }
+  } finally { chart.dispose() }
+})
 
 test('legend highlighting gives the actual bar element a thin black outline', () => {
   const chart = init(null, undefined, { renderer: 'svg', ssr: true, width: 800, height: 400 })

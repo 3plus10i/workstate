@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 import { Alert, Button, Collapse, Form, Input, InputNumber, Popconfirm, Radio, Select, Space, Switch, Tooltip } from 'antd'
 import { DeleteOutlined, DownloadOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons'
-import type { Bootstrap, Settings, Storage } from '../types'
+import type { ActivityPreview, Bootstrap, Settings, Storage } from '../types'
+import { call } from '../api'
+import { duration } from '../chartData'
 import { DateRange, type Range } from '../DateRange'
 import { canExport } from '../dateRules'
 import { StoragePanel } from './StoragePanel'
@@ -25,10 +27,12 @@ export function ConfigPanel({ activeSection, onSectionChange, bootstrap, onSave,
   const settings = bootstrap.settings
   const [draft, setDraft] = useState(settings)
   const [names, setNames] = useState<NameRow[]>([])
-  const [blacklist, setBlacklist] = useState('')
+  const [blacklist, setBlacklist] = useState(settings.excludedProcesses.join('\n'))
   const [sites, setSites] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [preview, setPreview] = useState<ActivityPreview | null>(null)
+  const [previewError, setPreviewError] = useState(false)
   const [exportRange, setExportRange] = useState<Range>([dayjs().subtract(6,'day'), dayjs()])
   function reset() {
     setDraft(settings)
@@ -38,6 +42,15 @@ export function ConfigPanel({ activeSection, onSectionChange, bootstrap, onSave,
     setError('')
   }
   useEffect(reset, [settings])
+  useEffect(() => {
+    if (activeSection !== 'recording') return
+    let active = true
+    setPreview(null); setPreviewError(false)
+    call<ActivityPreview>('activityPreview', { dayStartHour: draft.dayStartHour, excludedProcesses: blacklist.split('\n').map(s => s.trim()).filter(Boolean) })
+      .then(value => { if (active) setPreview(value) })
+      .catch(() => { if (active) setPreviewError(true) })
+    return () => { active = false }
+  }, [activeSection, draft.dayStartHour, blacklist])
   const dirty = JSON.stringify(draft) !== JSON.stringify(settings) || JSON.stringify(names.map(row => [row.process,row.name])) !== JSON.stringify(Object.entries(settings.displayNames)) || blacklist !== settings.excludedProcesses.join('\n') || sites !== settings.siteNames.join('\n')
   async function perform(action: () => Promise<void>) {
     setBusy(true); setError('')
@@ -56,9 +69,10 @@ export function ConfigPanel({ activeSection, onSectionChange, bootstrap, onSave,
   return <div className="settings-content">
     {error && <Alert type="error" title={error} showIcon closable onClose={() => setError('')}/>}
     <Collapse accordion destroyOnHidden activeKey={activeSection ? [activeSection] : []} onChange={keys => onSectionChange((Array.isArray(keys) ? keys[0] : keys) || '')} items={[
-      { key: 'recording', label: '记录设置', children: <><p className="setting-description">设置报表的一天起始时间和开机启动。</p><Form layout="vertical">
+      { key: 'recording', label: '记录设置', children: <><p className="setting-description">设置报表的一天起始时间、活跃时长统计粒度和开机启动。</p><Form layout="vertical">
         <div className="form-grid"><Form.Item label={<span>一天起始时间 <Info>修改报表显示的一天起始时间</Info></span>}><Radio.Group value={draft.dayStartHour} onChange={e => setDraft({ ...draft, dayStartHour: e.target.value })}><Radio.Button value={0}>午夜 0 时</Radio.Button><Radio.Button value={4}>凌晨 4 时</Radio.Button></Radio.Group></Form.Item>
 </div>
+        <Form.Item label="活跃时长统计粒度"><Space wrap size="middle"><Radio.Group aria-label="活跃时长统计粒度" value={draft.activityGranularity} onChange={e => setDraft({ ...draft, activityGranularity: e.target.value })}><Radio.Button value={1}>1 分钟</Radio.Button><Radio.Button value={5}>5 分钟</Radio.Button></Radio.Group><span className="setting-hint" aria-live="polite">{preview ? `今日预览：1 分钟 ${duration(preview.oneMinute)} · 5 分钟 ${duration(preview.fiveMinutes)}` : previewError ? '今日预览暂不可用' : '正在读取今日预览…'}</span></Space><p className="setting-hint">5 分钟小片内有活动即计 5 分钟，按各程序实际活动比例分配。热力图格子保留实际记录，原始数据不变。</p></Form.Item>
         <Form.Item label="开机启动"><Space><Switch checked={bootstrap.startup} disabled={bootstrap.status.demo || busy} onChange={enabled => perform(() => onStartup(enabled))} checkedChildren="开启" unCheckedChildren="关闭"/><span className="setting-hint">建议开启</span></Space></Form.Item>
       </Form></> },
       { key: 'aggregation', label: '富内容程序细分', children: <><p className="setting-description">可在报表中进一步细分显示部分程序的活动情况，例如显示具体项目名、文档名或网站名。</p><Form layout="vertical">
@@ -77,7 +91,7 @@ export function ConfigPanel({ activeSection, onSectionChange, bootstrap, onSave,
             <Select mode="tags" aria-label={item.input} value={draft[item.key]} tokenSeparators={[',','，',';','；']} onChange={value => setDraft({...draft,[item.key]:value})} placeholder={item.placeholder}/>
           </div>)}
         </Space></Form.Item>
-        <Form.Item label={<span>细分单列门槛 <Info>同一内容单日活跃时长超过门槛时，才在当天的报表中单独显示。</Info></span>}><Space><InputNumber aria-label="细分单列门槛" min={1} max={120} precision={0} value={draft.detailThreshold} onChange={value => { if (value !== null) setDraft({ ...draft, detailThreshold: value }) }}/>分钟</Space></Form.Item></div>
+        <Form.Item label={<span>细分单列门槛 <Info>同一内容单日实际活跃时长超过门槛时，才在当天的报表中单独显示。</Info></span>}><Space><InputNumber aria-label="细分单列门槛" min={1} max={120} precision={0} value={draft.detailThreshold} onChange={value => { if (value !== null) setDraft({ ...draft, detailThreshold: value }) }}/>分钟</Space></Form.Item></div>
         <Form.Item label="网站名关键词"><p className="field-description">浏览器窗口标题中包含以下关键词时，将被细分到对应网站。每行一个关键词，识别时按长度降序自动排列（长匹配优先）</p><Input.TextArea aria-label="网站名关键词" rows={6} value={sites} onChange={e => setSites(e.target.value)} placeholder="每行一个关键词，例如 GitHub"/></Form.Item>
       </Form></> },
       { key: 'blacklist', label: '进程黑名单', children: <><p className="setting-description">黑名单中的进程不会被WorkState记录。每行一个进程名（不含.exe）。可通过近期数据查看程序名。支持用双斜杠“//”做行内注释。</p><Input.TextArea aria-label="进程黑名单" rows={4} value={blacklist} onChange={e => setBlacklist(e.target.value)} placeholder="每行一个进程名，例如 LockApp"/></> },

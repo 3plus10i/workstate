@@ -12,6 +12,7 @@ LEGACY_PROGRAM_KEYS = {"customIdeProcesses": "ideProcesses", "customDocumentProc
 DEFAULTS = {
     "dayStartHour": 4,
     "idleSeconds": IDLE_SECONDS,
+    "activityGranularity": 1,
     "expandContexts": False,
     "detailThreshold": 15,
     "splitIde": True,
@@ -56,6 +57,8 @@ def validate_settings(value: dict) -> dict:
             raise ValueError(f"{key} 必须在 {low}–{high} 之间")
     # Accept old preferences but always use the fixed one-minute interval.
     result["idleSeconds"] = IDLE_SECONDS
+    if type(result["activityGranularity"]) is not int or result["activityGranularity"] not in (1, 5):
+        raise ValueError("活跃时长统计粒度只能为 1 分钟或 5 分钟")
     for key in ("siteNames", "excludedProcesses"):
         values = result[key]
         if not isinstance(values, list) or len(values) > 200 or any(not isinstance(v, str) or not v.strip() or len(v) > 100 for v in values):

@@ -1,16 +1,10 @@
-import { escapeHtml } from '../chartData'
+import { duration, escapeHtml, formatNumber } from '../chartData'
 import { useEffect, useRef } from 'react'
 import * as echarts from '../echarts'
 
 interface AppPieChartProps {
-  appData: Record<string, number>  // 已处理<5%合并的应用总时长
+  appData: Record<string, number>  // 按报表规则合并后的应用时长
   numDays?: number                 // 多日时传入，用于显示日均
-}
-
-function formatMinutes(minutes: number): string {
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return h > 0 ? `${h}h${m}m` : `${m}m`
 }
 
 export function AppPieChart({ appData, numDays }: AppPieChartProps) {
@@ -52,10 +46,9 @@ export function AppPieChart({ appData, numDays }: AppPieChartProps) {
       .sort((a, b) => b.value - a.value)
 
     const totalMinutes = Object.values(appData).reduce((s, v) => s + v, 0)
-    const centerLines = [`总计 ${formatMinutes(totalMinutes)}`]
+    const centerLines = [`总计 ${duration(totalMinutes)}`]
     if (numDays && numDays > 1) {
-      const avgMin = Math.round(totalMinutes / numDays)
-      centerLines.push(`日均 ${formatMinutes(avgMin)}`)
+      centerLines.push(`日均 ${duration(totalMinutes / numDays)}`)
     }
 
     const colors = [
@@ -72,7 +65,7 @@ export function AppPieChart({ appData, numDays }: AppPieChartProps) {
         textStyle: { fontSize: 14, color: 'rgba(0,0,0,0.85)' },
         padding: [8, 12],
         formatter: (params: any) => {
-          return `${escapeHtml(params.name)}<br/>${formatMinutes(params.value)} (${params.percent}%)`
+          return `${escapeHtml(params.name)}<br/>${duration(params.value)} (${formatNumber(params.percent)}%)`
         }
       },
       graphic: totalMinutes > 0 ? [{
@@ -90,6 +83,7 @@ export function AppPieChart({ appData, numDays }: AppPieChartProps) {
       series: [
         {
           name: '应用时长',
+          percentPrecision: 1,
           type: 'pie',
           radius: ['35%', '65%'],
           center: ['50%', '50%'],
@@ -99,7 +93,7 @@ export function AppPieChart({ appData, numDays }: AppPieChartProps) {
             show: true,
             position: 'outside',
             formatter: (params: any) => {
-              return `${params.name}: ${formatMinutes(params.value)} (${params.percent}%)`
+              return `${params.name}: ${duration(params.value)} (${formatNumber(params.percent)}%)`
             },
             fontSize: 14,
             color: '#262626',
