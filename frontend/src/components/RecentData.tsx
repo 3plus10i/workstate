@@ -29,7 +29,7 @@ export function RecentData({ revision, loading, onLoadingChange }: { revision: n
     <div className="recent-heading"><h2>最近 8 小时</h2>{data && <span>{dayjs(data.start).format('MM-DD HH:mm')} 至 {dayjs(data.end).format('MM-DD HH:mm')}</span>}</div>
     <p className="recent-notice">更多数据可通过导出功能查看</p>
     {error && <Alert className="page-alert" type="error" showIcon title={error}/>}
-    <Table<RecentRow> rowKey="minute" loading={loading} dataSource={data?.rows || []} scroll={{ x: 900, y: 'calc(100vh - 350px)' }} locale={{ emptyText: '最近 8 小时暂无记录' }}
+    <Table<RecentRow> size="small" rowKey="minute" loading={loading} dataSource={data?.rows || []} scroll={{ x: 900, y: 'calc(100vh - 398px)' }} locale={{ emptyText: '最近 8 小时暂无记录' }}
       pagination={{ current: data?.page || page, pageSize, total: data?.total || 0, showSizeChanger: true, pageSizeOptions: [30, 60, 120], showTotal: total => `共 ${total} 条`, onChange: (next, size) => { setPage(size !== pageSize ? 1 : next); setPageSize(size) } }}
       columns={[
         { title: '时间', dataIndex: 'time', width: 180, render: value => dayjs(value).format('MM-DD HH:mm') },

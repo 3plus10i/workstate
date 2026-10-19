@@ -21,7 +21,7 @@ export const ReportChart = memo(function ReportChart({ report, chart, page, toda
     : [], [report.days])
   const single = report.days.length === 1
   const dateCaption = single ? <figcaption className="chart-date-caption">{dailyDateLabel(report.days[0].date, today)}</figcaption> : null
-  return <div className={`chart-stage ${chart === 'heatmap' ? 'heatmap-stage' : ''}`}>
+  return <div className={`chart-stage${chart === 'heatmap' ? ' heatmap-stage' : ''}${chart === 'heatmap' && dailyHeatmaps.length ? ' daily-heatmap-stage' : ''}`}>
     {chart === 'heatmap' && (dailyHeatmaps.length
       ? <div className="daily-heatmaps">{dailyHeatmaps.map(({ day, selectedDate }) => <figure className="daily-heatmap" key={day.date}>
           <HeatmapChart values={day.slots} coverage={day.coverage} dayStartHour={report.dayStartHour} selectedDate={selectedDate}/>
