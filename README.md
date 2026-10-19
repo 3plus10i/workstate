@@ -90,4 +90,4 @@ Set-Location ..
 
 输出为 `release/WorkState/`、`release/WorkState-4.0.1-Windows.zip` 和 `release/SHA256SUMS.txt`。不传 `--skip-frontend` 时，打包脚本会先安装前端依赖、运行前端测试并重新构建；后端测试始终执行。
 
-更多说明：[开发指南](docs/development.md) · [数据管理](docs/data.md) · [图标资源](docs/logo.md) · [发布规范](docs/releases.md)。
+更多说明：[开发指南](docs/development.md) · [数据管理](docs/data.md) · [内容识别备忘录](docs/content-recognition.md) · [图标资源](docs/logo.md) · [发布规范](docs/releases.md)。

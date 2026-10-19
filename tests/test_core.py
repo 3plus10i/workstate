@@ -49,6 +49,38 @@ class ClassificationTests(unittest.TestCase):
         self.assertEqual(classify("chrome.exe", "How to use GITHUB ACTIONS - Google Chrome", settings).context,"GitHub Actions")
         self.assertEqual(classify("msedge.exe", "Learn C++ - Microsoft Edge", settings).context,"C++")
 
+    def test_browser_suffix_never_becomes_a_site_keyword(self):
+        settings = validate_settings({'siteNames': [
+            'Google Chrome', 'Google', 'Chrome', 'Microsoft Edge', 'Microsoft',
+            'Edge', 'Mozilla Firefox', 'Mozilla', 'Firefox', '豆包',
+        ]})
+        for process, suffix in (
+            ('chrome.exe', 'Google Chrome'), ('chrome.exe', 'Chrome'),
+            ('chrome.exe', 'Chromium'), ('msedge.exe', 'Microsoft Edge'),
+            ('msedge.exe', 'Microsoft\u200b Edge'), ('msedge.exe', 'Edge'),
+            ('firefox.exe', 'Mozilla Firefox'), ('firefox.exe', 'Firefox'),
+        ):
+            for separator in (' - ', ' — ', ' – '):
+                with self.subTest(process=process, suffix=suffix, separator=separator):
+                    title = '项目数据保存方式分析 - 豆包' + separator + suffix
+                    self.assertEqual(classify(process, title, settings).context, '豆包')
+            self.assertEqual(classify(process, suffix, settings).context, '')
+        self.assertEqual(classify('chrome', '页面 - 豆包 - Google Chrome [测试]', settings).context, '豆包')
+
+    def test_browser_suffix_cleanup_preserves_real_page_keywords(self):
+        settings = validate_settings({'siteNames': ['Google Scholar', 'Google', '豆包']})
+        self.assertEqual(classify('chrome', 'Google Scholar - Google Chrome', settings).context, 'Google Scholar')
+        self.assertEqual(classify('chrome', 'Google 搜索 - Google Chrome', settings).context, 'Google')
+        self.assertEqual(classify('chrome', '页面 - 豆包', settings).context, '豆包')
+        # Page topics can still contain website keywords: this is a title heuristic.
+        self.assertEqual(classify('chrome', 'Google 使用方法 - 豆包 - Google Chrome', settings).context, 'Google')
+
+    def test_custom_browser_suffix_requires_the_configured_process_name(self):
+        settings = validate_settings({'customBrowserProcesses': ['brave'], 'siteNames': ['Brave', '豆包']})
+        self.assertEqual(classify('Brave.exe', '页面 - 豆包 - Brave', settings).context, '豆包')
+        # Do not blindly discard the last segment: it may be the website name.
+        self.assertEqual(classify('Brave.exe', '页面 - 豆包', settings).context, '豆包')
+
     def test_rule_switches(self):
         settings = validate_settings({"splitIde": False, "splitDocuments": False, "splitSites": False})
         for proc, title in (("Code.exe", "file.py - project - VSCode"), ("WINWORD.EXE", "report.docx - Word"), ("chrome.exe", "GitHub - Google Chrome")):

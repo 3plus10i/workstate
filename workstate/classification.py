@@ -24,6 +24,16 @@ def content_title(title, suffix=None):
     return " - ".join(parts[:-1]) if len(parts) > 1 else ""
 
 
+def browser_title(title: str, key: str) -> str:
+    """Remove only a recognized terminal browser name, keeping the page title."""
+    suffix = {
+        "chrome": r"Google\s+Chrome|Chromium|Chrome",
+        "msedge": r"Microsoft[\s\u200b]+Edge|Edge",
+        "firefox": r"Mozilla\s+Firefox|Firefox",
+    }.get(key, re.escape(key))
+    return re.sub(rf"(?:^|\s+[—–-]\s+)(?:{suffix})(?:\s+\[.*\])?$", "", title, flags=re.I).strip()
+
+
 def classify(process: str, title: str, settings: dict) -> Identity:
     key = process_key(process) or "unknown"
     app = settings["displayNames"].get(key, process.removesuffix(".exe") or "未知程序")
@@ -48,7 +58,7 @@ def classify(process: str, title: str, settings: dict) -> Identity:
             context = re.sub(r"\.(?:docx?|xlsx?|pptx?|docm|xlsm|pptm)$", "", context, flags=re.I).strip()
             kind = "document" if context else "app"
     elif settings["splitSites"] and key in settings["browserProcesses"]:
-        folded = title.casefold()
+        folded = browser_title(title, key).casefold()
         for site in sorted(settings["siteNames"], key=len, reverse=True):
             if site.casefold() in folded:
                 context, kind = site, "site"
