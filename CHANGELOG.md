@@ -2,7 +2,7 @@
 
 本文件记录 WorkState 的用户可见变更。版本采用 `主版本.次版本.修订版本`。
 
-## 未发布
+## [4.1.1] - 2026-10-19
 
 - 减少单日至三日热力图上下留白，日期和日活跃时长使用与说明文字一致的字号和颜色。
 - 缩小近期数据表格的可视高度和行内留白，保留原有字号及分页选项。
@@ -39,6 +39,7 @@ WorkState 首个正式版本，作为 [PCState](https://github.com/3plus10i/pcst
 - 发布包仅含单文件 EXE 和 README，无需安装 Python 或 Node.js。
 - 在“关于”中手动检查更新，优先使用 GitHub，网络异常时回退到 ghproxy。下载校验后重启更新，保留数据与设置，启动失败时恢复原程序。
 
+[4.1.1]: https://github.com/3plus10i/workstate/releases/tag/v4.1.1
 [4.1.0]: https://github.com/3plus10i/workstate/releases/tag/v4.1.0
 [4.0.1]: https://github.com/3plus10i/workstate/releases/tag/v4.0.1
 [4.0.0]: https://github.com/3plus10i/workstate/releases/tag/v4.0.0
