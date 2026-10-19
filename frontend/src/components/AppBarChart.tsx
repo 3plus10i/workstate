@@ -63,13 +63,11 @@ export function AppBarChart({ hourlyAppData, dayStartHour }: AppBarChartProps) {
       }
     })
 
-    const sortedApps = Array.from(appTotalDuration.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
+    const apps = Array.from(appTotalDuration.entries())
+      .sort(([a, av], [b, bv]) => Number(a === '其他') - Number(b === '其他') || bv - av)
+      .map(([name]) => name)
 
-    const top10Apps = sortedApps.map(entry => entry[0])
-
-    if (top10Apps.length === 0) {
+    if (apps.length === 0) {
       chart.clear()
       chart.setOption({
         title: {
@@ -91,23 +89,18 @@ export function AppBarChart({ hourlyAppData, dayStartHour }: AppBarChartProps) {
     ]
 
     const appColors = new Map<string, string>()
-    top10Apps.forEach((app, index) => {
+    apps.forEach((app, index) => {
       appColors.set(app, colors[index % colors.length])
     })
     appColors.set('其他', '#d9d9d9')
 
-    const seriesData = []
-
-    for (let i = 0; i < 5; i++) {
-      const app = top10Apps[i]
-      if (!app) break
-
+    const seriesData = apps.map(app => {
       const data = hourlyAppData.map(hourData => {
         if (!hourData || typeof hourData !== 'object') return null
         return barValue(hourData[app] || 0)
       })
 
-      seriesData.push({
+      return {
         name: app,
         type: 'bar' as const,
         stack: 'total',
@@ -118,29 +111,6 @@ export function AppBarChart({ hourlyAppData, dayStartHour }: AppBarChartProps) {
           borderColor: '#fff',
           borderWidth: 1
         }
-      })
-    }
-
-    const otherData = hourlyAppData.map(hourData => {
-      if (!hourData || typeof hourData !== 'object') return 0
-      let total = 0
-      top10Apps.slice(0, 5).forEach(app => {
-        total += (hourData[app] || 0)
-      })
-      const hourTotal = Object.values(hourData).reduce((sum, val) => sum + val, 0)
-      return Math.max(0, hourTotal - total)
-    })
-
-    seriesData.push({
-      name: '其他',
-      type: 'bar' as const,
-      stack: 'total',
-      data: otherData.map(barValue),
-      emphasis: BAR_EMPHASIS,
-        itemStyle: {
-        color: '#d9d9d9',
-        borderColor: '#fff',
-        borderWidth: 1
       }
     })
 

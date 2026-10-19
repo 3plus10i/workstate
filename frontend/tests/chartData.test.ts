@@ -59,16 +59,28 @@ test('duplicate display names are merged without losing minutes', () => {
   assert.equal(Object.values(data.appTotals).reduce((a,b) => a+b,0),100)
 })
 
-test('90 percent consolidation conserves total and hourly data', () => {
+test('dominant applications do not hide smaller items within the twelve-item limit', () => {
   const data=chartData(fixture([app('main',90),app('small',6),app('tiny',4)]))
-  assert.deepEqual(data.appTotals,{main:90,'其他':10})
+  assert.deepEqual(data.appTotals,{main:90,small:6,tiny:4})
   assert.deepEqual(data.hourlyAppData[0][0],data.appTotals)
 })
 
-test('at most twelve named items are kept', () => {
-  const data=chartData(fixture(Array.from({length:15},(_,i) => app(`app-${i}`,10))))
+test('exactly twelve display names are kept even when the largest exceeds ninety percent', () => {
+  const data=chartData(fixture([app('main',990),...Array.from({length:11},(_,i) => app(`small-${i}`,1))]))
+  assert.equal(Object.keys(data.appTotals).length,12)
+  assert.equal(data.appTotals['其他'],undefined)
+  assert.equal(data.appTotals['small-10'],1)
+  assert.deepEqual(data.hourlyAppData[0][0],data.appTotals)
+})
+
+test('the twelve largest items are kept and remaining durations are conserved', () => {
+  const data=chartData(fixture(Array.from({length:15},(_,i) => app(`app-${i}`,i+1))))
   assert.equal(Object.keys(data.appTotals).length,13)
-  assert.equal(data.appTotals['其他'],30)
+  assert.equal(data.appTotals['其他'],6)
+  for (let i=0;i<3;i++) assert.equal(data.appTotals[`app-${i}`],undefined)
+  for (let i=3;i<15;i++) assert.equal(data.appTotals[`app-${i}`],i+1)
+  assert.deepEqual(data.hourlyAppData[0][0],data.appTotals)
+  assert.equal(Object.values(data.appTotals).reduce((sum,value) => sum+value,0),120)
 })
 
 test('workday average uses actual recorded workday totals', () => {

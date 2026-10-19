@@ -28,18 +28,12 @@ export function duration(minutes: number): string {
   return rounded >= 60 ? `${Math.floor(rounded / 60)}h${formatNumber(rounded % 60)}m` : `${formatNumber(rounded)}m`
 }
 
-// Presentation-only consolidation, matching the original 90% / 12-item rule.
+// Keep the twelve largest display names; consolidate the remainder for charts.
 export function chartData(report: Report) {
   const names = Object.fromEntries(report.apps.map(app => [app.key, app.context ? `${app.app} - ${app.context}` : app.app]))
   const totals: Record<string, number> = {}
   report.apps.forEach(app => { const name = names[app.key]; totals[name] = (totals[name] || 0) + app.minutes })
-  const total = report.summary.activeMinutes
-  const kept = new Set<string>()
-  let cumulative = 0
-  for (const [name, value] of Object.entries(totals).sort((a,b) => b[1]-a[1])) {
-    if (kept.size >= 12 || cumulative >= total * .9) break
-    kept.add(name); cumulative += value
-  }
+  const kept = new Set(Object.entries(totals).sort((a,b) => b[1]-a[1]).slice(0,12).map(([name]) => name))
   const consolidate = (values: Record<string, number>, alreadyNamed = false) => {
     const result: Record<string, number> = {}
     Object.entries(values).forEach(([key, value]) => {
@@ -78,6 +72,6 @@ export function chartDescription(report: Report, kind: 'heatmap' | 'pie' | 'bar'
   }
   return {
     info: `${prefix}总计 ${duration(total)}${averages}`,
-    explanation: `${kind === 'pie' ? '展示各应用活跃时长占比' : single ? '堆叠柱状图展示每小时的应用时长' : '堆叠柱状图展示每天的应用时长'}，${kind === 'bar' && single ? '保留前5项，其余归入“其他”' : '按累计占比达到90%或超过12项后归入“其他”'}。${granularity}`,
+    explanation: `${kind === 'pie' ? '展示各应用活跃时长占比' : single ? '堆叠柱状图展示每小时的应用时长' : '堆叠柱状图展示每天的应用时长'}，按活跃时长保留前12项，其余归入“其他”。${granularity}`,
   }
 }
