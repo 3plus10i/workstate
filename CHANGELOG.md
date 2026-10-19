@@ -2,8 +2,10 @@
 
 本文件记录 WorkState 的用户可见变更。版本采用 `主版本.次版本.修订版本`。
 
-## 未发布
+## [4.1.0] - 2026-10-19
 
+- 记录设置使用分段控制器切换一天起始时间和统计粒度，统一同排布局和间距；今日时长示例随所选粒度切换，精简说明文案。
+- 检查更新后的“当前已是最新版本”提示在五秒后自动清除。
 - 浏览器网站细分先清理已知浏览器名称后缀，避免 Google Chrome、Microsoft Edge、Mozilla Firefox 中的品牌词被误判为网站。
 - 修复多日柱状图悬浮提示对空柱值求和产生 NaN、百分比显示为零的问题。
 - 日热力图日期下方增加日活跃时长，二日、三日并列图分别显示各日时长。
@@ -31,5 +33,6 @@ WorkState 首个正式版本，作为 [PCState](https://github.com/3plus10i/pcst
 - 发布包仅含单文件 EXE 和 README，无需安装 Python 或 Node.js。
 - 在“关于”中手动检查更新，优先使用 GitHub，网络异常时回退到 ghproxy。下载校验后重启更新，保留数据与设置，启动失败时恢复原程序。
 
+[4.1.0]: https://github.com/3plus10i/workstate/releases/tag/v4.1.0
 [4.0.1]: https://github.com/3plus10i/workstate/releases/tag/v4.0.1
 [4.0.0]: https://github.com/3plus10i/workstate/releases/tag/v4.0.0

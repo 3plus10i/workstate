@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
-import { Alert, Button, Collapse, Form, Input, InputNumber, Popconfirm, Radio, Select, Space, Switch, Tooltip } from 'antd'
+import { Alert, Button, Collapse, Form, Input, InputNumber, Popconfirm, Segmented, Select, Space, Switch, Tooltip } from 'antd'
 import { DeleteOutlined, DownloadOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import type { ActivityPreview, Bootstrap, Settings, Storage } from '../types'
 import { call } from '../api'
@@ -69,10 +69,9 @@ export function ConfigPanel({ activeSection, onSectionChange, bootstrap, onSave,
   return <div className="settings-content">
     {error && <Alert type="error" title={error} showIcon closable onClose={() => setError('')}/>}
     <Collapse accordion destroyOnHidden activeKey={activeSection ? [activeSection] : []} onChange={keys => onSectionChange((Array.isArray(keys) ? keys[0] : keys) || '')} items={[
-      { key: 'recording', label: '记录设置', children: <><p className="setting-description">设置报表的一天起始时间、活跃时长统计粒度和开机启动。</p><Form layout="vertical">
-        <div className="form-grid"><Form.Item label={<span>一天起始时间 <Info>修改报表显示的一天起始时间</Info></span>}><Radio.Group value={draft.dayStartHour} onChange={e => setDraft({ ...draft, dayStartHour: e.target.value })}><Radio.Button value={0}>午夜 0 时</Radio.Button><Radio.Button value={4}>凌晨 4 时</Radio.Button></Radio.Group></Form.Item>
-</div>
-        <Form.Item label="活跃时长统计粒度"><Space wrap size="middle"><Radio.Group aria-label="活跃时长统计粒度" value={draft.activityGranularity} onChange={e => setDraft({ ...draft, activityGranularity: e.target.value })}><Radio.Button value={1}>1 分钟</Radio.Button><Radio.Button value={5}>5 分钟</Radio.Button></Radio.Group><span className="setting-hint" aria-live="polite">{preview ? `今日预览：1 分钟 ${duration(preview.oneMinute)} · 5 分钟 ${duration(preview.fiveMinutes)}` : previewError ? '今日预览暂不可用' : '正在读取今日预览…'}</span></Space><p className="setting-hint">5 分钟小片内有活动即计 5 分钟，按各程序实际活动比例分配。热力图格子保留实际记录，原始数据不变。</p></Form.Item>
+      { key: 'recording', label: '记录设置', children: <><p className="setting-description">修改WorkState的基本设置</p><Form className="recording-form" layout="horizontal" labelAlign="left" colon={false} labelCol={{ flex: '170px' }} wrapperCol={{ flex: 'auto' }}>
+        <Form.Item label="一天起始时间" extra={<span className="setting-hint">修改统计报表中一天数据的范围，从0时到24时，或从4时到次日4时。</span>}><Segmented aria-label="一天起始时间" value={draft.dayStartHour} options={[{ label: '午夜 0 时', value: 0 }, { label: '凌晨 4 时', value: 4 }]} onChange={value => setDraft({ ...draft, dayStartHour: value })}/></Form.Item>
+        <Form.Item label="活跃时长统计粒度" extra={<span className="setting-hint" aria-live="polite">{preview ? `示例：今日活跃 ${duration(draft.activityGranularity === 5 ? preview.fiveMinutes : preview.oneMinute)}` : previewError ? '示例：今日活跃时长暂不可用' : '正在读取今日活跃时长…'}</span>}><Segmented aria-label="活跃时长统计粒度" value={draft.activityGranularity} options={[{ label: '1 分钟', value: 1 }, { label: '5 分钟', value: 5 }]} onChange={value => setDraft({ ...draft, activityGranularity: value as 1 | 5 })}/></Form.Item>
         <Form.Item label="开机启动"><Space><Switch checked={bootstrap.startup} disabled={bootstrap.status.demo || busy} onChange={enabled => perform(() => onStartup(enabled))} checkedChildren="开启" unCheckedChildren="关闭"/><span className="setting-hint">建议开启</span></Space></Form.Item>
       </Form></> },
       { key: 'aggregation', label: '富内容程序细分', children: <><p className="setting-description">可在报表中进一步细分显示部分程序的活动情况，例如显示具体项目名、文档名或网站名。</p><Form layout="vertical">

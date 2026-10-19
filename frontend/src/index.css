@@ -68,6 +68,10 @@ footer { display: flex; justify-content: center; align-items: center; gap: 18px;
 .setting-description, .field-description { color: #737373; font-size: 14px; line-height: 1.8; margin: 0 0 20px; }
 .field-description { margin-bottom: 12px; }
 .setting-hint { color: #737373; font-size: 14px; }
+.recording-form { display: flex; flex-direction: column; gap: 24px; }
+.settings-content .recording-form .ant-form-item { margin-bottom: 0; }
+.settings-content .recording-form .ant-form-item-label { padding-bottom: 0; }
+.recording-form .ant-form-item-extra { padding-top: 6px; min-height: 0; }
 .recent-notice { margin: -4px 0 18px; font-size: 14px; color: #737373; }
 .about-card { background: #fff; border: 1px solid #e3e3e3; border-radius: 8px; padding: 24px; }
 .about-card h2 { margin: 0 0 24px; font-size: 20px; font-weight: 500; }

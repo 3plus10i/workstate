@@ -12,7 +12,7 @@ export function About({ version, onBack }: { version: string; onBack: () => void
   const [checking, setChecking] = useState(false)
   useEffect(() => {
     let active = true
-    call<UpdateStatus>('updateStatus').then(value => { if (active) setUpdate(value) }).catch(() => {})
+    call<UpdateStatus>('updateStatus').then(value => { if (active) setUpdate(value.phase === 'latest' ? null : value) }).catch(() => {})
     return () => { active = false }
   }, [])
   useEffect(() => {
@@ -23,6 +23,11 @@ export function About({ version, onBack }: { version: string; onBack: () => void
     }, 700)
     return () => { active = false; window.clearInterval(timer) }
   }, [update?.phase])
+  useEffect(() => {
+    if (update?.phase !== 'latest') return
+    const timer = window.setTimeout(() => setUpdate(value => value?.phase === 'latest' ? null : value), 5000)
+    return () => window.clearTimeout(timer)
+  }, [update])
   async function action(method: string) {
     try { setUpdate(await call<UpdateStatus>(method)) }
     catch (error) { message.error(String((error as Error).message)) }
