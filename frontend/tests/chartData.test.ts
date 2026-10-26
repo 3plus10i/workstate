@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { barDateLabel, chartData, chartDescription, dailyDateLabel, duration, escapeHtml, formatNumber } from '../src/chartData.ts'
+import dayjs from 'dayjs'
+import { barDateLabel, barLegendTooltip, chartData, chartDescription, dailyDateLabel, duration, escapeHtml, formatNumber } from '../src/chartData.ts'
 import type { Application, Report } from '../src/types.ts'
 
 function fixture(apps: Application[]): Report {
@@ -13,6 +14,24 @@ function fixture(apps: Application[]): Report {
   }
 }
 const app = (key: string,minutes: number,name=key): Application => ({ key,minutes,app:name,context:'',kind:'app' })
+
+test('bar legend tooltips use totals for the entire range including days outside the chart page', () => {
+  const report = fixture([app('editor',120), app('browser',5/3)])
+  report.days = Array.from({length:40}, (_,i) => ({...report.days[0],date:dayjs('2026-09-01').add(i,'day').format('YYYY-MM-DD')}))
+  report.apps = [app('editor',4800), app('browser',200/3)]
+  const totals = chartData(report).appTotals
+  const tooltip = barLegendTooltip(totals)
+  assert.equal(tooltip.show,true)
+  assert.equal(tooltip.formatter({name:'editor'}),'editor<br/>区间总活跃时长：80h0m')
+  assert.equal(tooltip.formatter({name:'browser'}),'browser<br/>区间总活跃时长：1h6.7m')
+})
+
+test('bar legend tooltips escape display names and retain consolidated other totals', () => {
+  const data = chartData(fixture([app('large',90,'<Project & "alpha">'),...Array.from({length:14},(_,i) => app(`small-${i}`,1))]))
+  const tooltip = barLegendTooltip(data.appTotals)
+  assert.equal(tooltip.formatter({name:'<Project & "alpha">'}),'&lt;Project &amp; &quot;alpha&quot;&gt;<br/>区间总活跃时长：1h30m')
+  assert.equal(tooltip.formatter({name:'其他'}),'其他<br/>区间总活跃时长：3m')
+})
 
 test('fractional allocation stays precise until labels are formatted to at most one decimal', () => {
   const report = fixture([app('A',5/3),app('B',10/3)])

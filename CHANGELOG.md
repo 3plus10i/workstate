@@ -2,6 +2,12 @@
 
 本文件记录 WorkState 的用户可见变更。版本采用 `主版本.次版本.修订版本`。
 
+## [4.1.2] - 2026-10-26
+
+- CSV 导出成功通知增加“打开所在文件夹”链接，点击后打开文件资源管理器。
+- 关闭窗口到托盘后，再次打开时重置页面状态并重新加载当天报表，遵循设置中的一天起始时间。
+- 单日和多日柱状图的图例悬浮提示显示对应项目在整个所选区间内的总活跃时长。
+
 ## [4.1.1] - 2026-10-19
 
 - 减少单日至三日热力图上下留白，日期和日活跃时长使用与说明文字一致的字号和颜色。
@@ -39,6 +45,7 @@ WorkState 首个正式版本，作为 [PCState](https://github.com/3plus10i/pcst
 - 发布包仅含单文件 EXE 和 README，无需安装 Python 或 Node.js。
 - 在“关于”中手动检查更新，优先使用 GitHub，网络异常时回退到 ghproxy。下载校验后重启更新，保留数据与设置，启动失败时恢复原程序。
 
+[4.1.2]: https://github.com/3plus10i/workstate/releases/tag/v4.1.2
 [4.1.1]: https://github.com/3plus10i/workstate/releases/tag/v4.1.1
 [4.1.0]: https://github.com/3plus10i/workstate/releases/tag/v4.1.0
 [4.0.1]: https://github.com/3plus10i/workstate/releases/tag/v4.0.1

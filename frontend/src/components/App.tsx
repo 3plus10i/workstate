@@ -97,7 +97,10 @@ export function App() {
       const link = document.createElement('a'); link.href=url; link.download=result.filename; link.click()
       setTimeout(() => URL.revokeObjectURL(url),1000)
     }
-    message.success(`已导出 ${result.count.toLocaleString()} 条记录`)
+    message.success({
+      content: <Space>已导出 {result.count.toLocaleString()} 条记录{result.directory && <Button type="link" size="small" title={result.directory} style={{padding:0}} onClick={() => run(() => call('openExportDirectory',{directory:result.directory}))}>打开所在文件夹</Button>}</Space>,
+      duration: result.directory ? 8 : 3,
+    })
   }
   async function saveSettings(value: Settings) {
     const settings = await call<Settings>('saveSettings',value)

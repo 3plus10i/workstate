@@ -1,4 +1,4 @@
-import { barDateLabel, escapeHtml, formatNumber } from '../chartData'
+import { barDateLabel, barLegendTooltip, escapeHtml, formatNumber } from '../chartData'
 import { activeBarItems, BAR_EMPHASIS, barValue } from '../barStyle'
 import { useEffect, useRef } from 'react'
 import * as echarts from '../echarts'
@@ -98,6 +98,7 @@ export function MultiDayBarChart({ hourlyAppData, days, appTotals, dayStartHour 
         }
       },
       legend: {
+        tooltip: barLegendTooltip(appTotals),
         orient: 'horizontal', top: 0, left: 'center',
         itemWidth: 12, itemHeight: 12,
         textStyle: { fontSize: 14, color: '#262626' }

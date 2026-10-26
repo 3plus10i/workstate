@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "workstate"
-version = "4.1.1"
+version = "4.1.2"
 description = "Local Windows activity tracking and reports; successor to PCState"
 readme = "README.md"
 requires-python = ">=3.11"

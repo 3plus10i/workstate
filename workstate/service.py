@@ -236,6 +236,9 @@ class Service:
         if method == "openData" and self.desktop:
             self.desktop.open_data()
             return True
+        if method == "openExportDirectory" and self.desktop:
+            self.desktop.open_export_directory(payload.get("directory"))
+            return True
         if method == "startup" and self.desktop:
             if type(payload.get("enabled")) is not bool:
                 raise ValueError("开机启动开关格式无效")
@@ -244,4 +247,4 @@ class Service:
         if method == "quit" and self.desktop:
             self.desktop.quit()
             return True
-        raise ValueError("此操作仅在桌面应用中可用" if method in {"openData", "startup", "quit", "importPreview"} else "未知操作")
+        raise ValueError("此操作仅在桌面应用中可用" if method in {"openData", "openExportDirectory", "startup", "quit", "importPreview"} else "未知操作")

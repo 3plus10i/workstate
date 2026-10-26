@@ -28,6 +28,13 @@ export function duration(minutes: number): string {
   return rounded >= 60 ? `${Math.floor(rounded / 60)}h${formatNumber(rounded % 60)}m` : `${formatNumber(rounded)}m`
 }
 
+export function barLegendTooltip(totals: Record<string, number>) {
+  return {
+    show: true,
+    formatter: ({ name }: { name: string }) => `${escapeHtml(name)}<br/>区间总活跃时长：${duration(totals[name] || 0)}`,
+  }
+}
+
 // Keep the twelve largest display names; consolidate the remainder for charts.
 export function chartData(report: Report) {
   const names = Object.fromEntries(report.apps.map(app => [app.key, app.context ? `${app.app} - ${app.context}` : app.app]))

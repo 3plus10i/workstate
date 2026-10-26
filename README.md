@@ -12,7 +12,7 @@ WorkState 从 **v4.0.0** 开始独立发布。项目前身：[PCState](https://g
 
 需要 Windows 10/11 和 Microsoft Edge WebView2 Runtime。
 
-解压 `WorkState-4.1.1-Windows.zip`，打开其中的 `WorkState/WorkState.exe`。发布包仅含单文件 EXE 和 README，EXE 可单独运行。
+解压 `WorkState-4.1.2-Windows.zip`，打开其中的 `WorkState/WorkState.exe`。发布包仅含单文件 EXE 和 README，EXE 可单独运行。
 
 - 双击托盘图标打开窗口；关闭窗口后继续在托盘记录，从托盘菜单选择“退出”结束程序。
 - 在“设置 → 记录设置”中开启开机启动，默认关闭，强烈建议开启。
@@ -88,6 +88,6 @@ Set-Location ..
 .\.venv\Scripts\python.exe build.py --skip-frontend --release
 ```
 
-输出为 `release/WorkState/`、`release/WorkState-4.1.1-Windows.zip` 和 `release/SHA256SUMS.txt`。不传 `--skip-frontend` 时，打包脚本会先安装前端依赖、运行前端测试并重新构建；后端测试始终执行。
+输出为 `release/WorkState/`、`release/WorkState-4.1.2-Windows.zip` 和 `release/SHA256SUMS.txt`。不传 `--skip-frontend` 时，打包脚本会先安装前端依赖、运行前端测试并重新构建；后端测试始终执行。
 
 更多说明：[开发指南](docs/development.md) · [数据管理](docs/data.md) · [内容识别备忘录](docs/content-recognition.md) · [图标资源](docs/logo.md) · [发布规范](docs/releases.md)。

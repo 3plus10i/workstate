@@ -1,4 +1,4 @@
-import { escapeHtml, formatNumber } from '../chartData'
+import { barLegendTooltip, escapeHtml, formatNumber } from '../chartData'
 import { BAR_EMPHASIS, barValue } from '../barStyle'
 import { useEffect, useRef } from 'react'
 import * as echarts from '../echarts'
@@ -182,6 +182,7 @@ export function AppBarChart({ hourlyAppData, dayStartHour }: AppBarChartProps) {
         }
       },
       legend: {
+        tooltip: barLegendTooltip(Object.fromEntries(appTotalDuration)),
         orient: 'horizontal',
         top: 0,
         left: 'center',

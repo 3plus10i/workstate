@@ -70,7 +70,7 @@ export interface Report {
 }
 export interface Bootstrap { settings: Settings; programDefaults: Pick<Settings, 'ideProcesses' | 'documentProcesses' | 'browserProcesses'>; storage: Storage; status: Status; startup: boolean }
 export interface ActivityPreview { date: string; oneMinute: number; fiveMinutes: number }
-export interface ExportResult { cancelled?: boolean; content?: string; filename: string; count: number }
+export interface ExportResult { cancelled?: boolean; content?: string; filename: string; count: number; directory?: string }
 
 export interface RecentRow { minute: number; time: string; active: boolean; process: string; title: string }
 export interface Recent { start: string; end: string; endMinute: number; page: number; pageSize: number; total: number; rows: RecentRow[] }

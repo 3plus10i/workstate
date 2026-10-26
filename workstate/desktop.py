@@ -35,6 +35,8 @@ class Desktop:
     def __init__(self, service, background=False, smoke_test=False, log_handler=None, update_result=None):
         self._service = service
         self._background = background
+        self._hidden = background
+        self._export_directories = set()
         self._window = None
         self._tray = None
         self._quitting = False
@@ -179,9 +181,19 @@ class Desktop:
             os.replace(temporary, path)
         finally:
             temporary.unlink(missing_ok=True)
-        return {"filename": path.name, "count": count}
+        directory = str(path.parent.resolve())
+        self._export_directories.add(directory)
+        return {"filename": path.name, "count": count, "directory": directory}
+
+    def open_export_directory(self, directory):
+        if not isinstance(directory, str) or directory not in self._export_directories:
+            raise ValueError("请先导出文件")
+        os.startfile(directory)
 
     def show(self, *_):
+        if self._hidden:
+            self._window.evaluate_js("window.dispatchEvent(new Event('workstate:shown'))")
+            self._hidden = False
         self._window.show()
         self._window.restore()
 
@@ -195,6 +207,7 @@ class Desktop:
     def _closing(self):
         if not self._quitting and self._tray and self._tray.visible:
             self._window.hide()
+            self._hidden = True
             return False
         return True
 
